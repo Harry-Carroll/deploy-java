@@ -27,6 +27,10 @@ public class Employee implements Comparable<Employee>, Serializable {
         setEmployeeId(employeeId);
     }
 
+    public Employee() {
+
+    }
+
     public float getSalary() {
         return this.salary;
     }

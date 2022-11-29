@@ -9,11 +9,13 @@ import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @ExtendWith(DropwizardExtensionsSupport.class)
@@ -24,18 +26,12 @@ public class HRIntegrationTest {
             new ResourceConfigurationSourceProvider()
     );
 
-    @Test
-    void getEmployees_shouldReturnListOfEmployees() {
-        List<Employee> response = APP.client().target("http://localhost:8080/hr/employee")
-                .request()
-                .get(List.class);
 
-        Assertions.assertTrue(response.size() > 0);
-    }
+    EmployeeRequest employeeRequest;
 
-    @Test
-    void postEmployee_shouldReturnIdOfEmployee() {
-        EmployeeRequest employeeRequest = new EmployeeRequest(
+    @BeforeEach
+    public void beforeEach() {
+        employeeRequest = new EmployeeRequest(
                 30000,
                 "Integration",
                 "Test",
@@ -50,6 +46,18 @@ public class HRIntegrationTest {
                 "12345678",
                 "AA1A11AA"
         );
+    }
+    @Test
+    void getEmployees_shouldReturnListOfEmployees() {
+        List<Employee> response = APP.client().target("http://localhost:8080/hr/employee")
+                .request()
+                .get(List.class);
+
+        Assertions.assertTrue(response.size() > 0);
+    }
+
+    @Test
+    void postEmployee_shouldReturnIdOfEmployee() {
 
         int response = APP.client().target("http://localhost:8080/hr/employee")
                 .request()
@@ -75,6 +83,18 @@ public class HRIntegrationTest {
     This should pass without code changes
      */
 
+    @Test
+    void getEmployees_shouldReturnEmployeeJustCreated() {
+        int postRequestEmployeeId = APP.client().target("http://localhost:8080/hr/employee")
+                .request()
+                .post(Entity.entity(employeeRequest, MediaType.APPLICATION_JSON_TYPE))
+                .readEntity(Integer.class);
+        Employee employeeFromPost = APP.client().target("http://localhost:8080/hr/employee/" + postRequestEmployeeId)
+                .request()
+                .get(Employee.class);
+
+        Assertions.assertEquals(postRequestEmployeeId,employeeFromPost.getEmployeeId() );
+    }
     /*
     Integration Test Exercise 2
 
@@ -86,7 +106,15 @@ public class HRIntegrationTest {
 
     This should fail, make code changes to make this test pass
      */
+    @Test
+    void postEmployee_withResponse400ToBeReturned_whenSalaryTooLow() {
+        employeeRequest.setSalary(10000);
+        Response response = APP.client().target("http://localhost:8080/hr/employee")
+                .request()
+                .post(Entity.entity(employeeRequest, MediaType.APPLICATION_JSON_TYPE));
 
+        Assertions.assertEquals(400, response.getStatus());
+    }
     /*
     Integration Test Exercise 3
 
@@ -99,6 +127,15 @@ public class HRIntegrationTest {
     This should fail, make code changes to make this test pass
      */
 
+    @Test
+    void postEmployee_withResponse400ToBeReturned_whenBankNumberTooShort() {
+        employeeRequest.setBankNo("123");
+        Response response = APP.client().target("http://localhost:8080/hr/employee")
+                .request()
+                .post(Entity.entity(employeeRequest, MediaType.APPLICATION_JSON_TYPE));
+
+        Assertions.assertEquals(400, response.getStatus());
+    }
     /*
     Integration Test Exercise 4
 
@@ -110,4 +147,13 @@ public class HRIntegrationTest {
 
     This should fail, make code changes to make this test pass
      */
+    @Test
+    void getEmployees_shouldReturnResponseCode400IfEmployeeIsNull() {
+        int testEndpoint = 123456;
+        Response employeeFromPostRes = APP.client().target("http://localhost:8080/hr/employee/" + testEndpoint)
+                .request()
+                .get(Response.class);
+
+        Assertions.assertEquals(400,employeeFromPostRes.getStatus() );
+    }
 }

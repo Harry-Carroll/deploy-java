@@ -1,5 +1,6 @@
 package com.kainos.ea.dao;
 
+import com.kainos.ea.exception.UserDoesNotExistException;
 import com.kainos.ea.model.Employee;
 import com.kainos.ea.model.EmployeeRequest;
 
@@ -50,7 +51,7 @@ public class EmployeeDao {
         return empNo;
     }
 
-    public Employee getEmployee(int employeeId, Connection c) throws SQLException {
+    public Employee getEmployee(int employeeId, Connection c) throws SQLException, UserDoesNotExistException {
         Statement st = c.createStatement();
 
         ResultSet rs = st.executeQuery(
