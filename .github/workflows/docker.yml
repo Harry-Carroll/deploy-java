@@ -36,5 +36,5 @@ jobs:
         ECR_REPOSITORY: employee_demo
         IMAGE_TAG: team1-api
       run: | 
-          docker build --build-arg DB_VAR=${DB_VAR} -t <registry-name>/<repository-name>:<image-tag> . --file Dockerfile --tag my-image-name:$(date +%s) 
-          docker push <registry-name>/<repository-name>:<image-tag>
+          docker build --build-arg DB_PASSWORD=${DB_PASSWORD} --build-arg DB_USERNAME=${DB_USERNAME} --build-arg DB_HOST=${DB_HOST}--build-arg DB_NAME=${DB_NAME} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . 
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
